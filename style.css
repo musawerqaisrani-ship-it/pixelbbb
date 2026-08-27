@@ -533,6 +533,20 @@ input[type="color"]::-webkit-color-swatch {
     transition: width 0.2s ease;
     background: #ffffff;
     border: 1px solid var(--border-color);
+    overflow: hidden;
+}
+
+#svgPreviewContainer {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+#svgPreviewContainer svg {
+    display: block;
+    width: 100%;
+    height: auto;
+    max-width: 100%;
 }
 
 canvas#urduCanvas {
