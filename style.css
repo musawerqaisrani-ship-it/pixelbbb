@@ -561,34 +561,53 @@ canvas#urduCanvas {
    Full Mobile Responsiveness Rules (Screen width <= 768px)
    -------------------------------------------------------------------------- */
 @media (max-width: 768px) {
-    .app-container {
-        flex-direction: column;
-        height: 100vh;
-        overflow: hidden;
+    html, body {
+        height: auto;
+        max-height: none;
+        overflow-x: hidden;
+        overflow-y: auto;
     }
 
-    /* Move Preview Area to Top (Sticky Preview on Mobile Screen) */
+    .app-container {
+        flex-direction: column;
+        height: auto;
+        min-height: 100vh;
+        overflow-x: hidden;
+        overflow-y: auto;
+        padding-bottom: 84px; /* Touch padding for floating action bar */
+    }
+
+    /* Move Preview Area to Top (Sticky 50vh Max-Height Preview on Mobile) */
     .main-viewport {
         order: 1;
         width: 100%;
-        height: 42vh;
-        min-height: 240px;
+        height: auto;
+        min-height: auto;
         border-bottom: 2px solid var(--border-color);
+        position: relative;
     }
 
     .canvas-scroll-container {
         padding: 12px;
-        max-height: calc(42vh - 48px);
+        max-height: 50vh;
+        overflow: auto;
     }
 
-    /* Move Sidebar / Control Panel to Bottom Half */
+    .canvas-wrapper {
+        width: 100%;
+        max-height: 50vh;
+        overflow: auto;
+    }
+
+    /* Move Sidebar / Control Panel Below Preview */
     .sidebar {
         order: 2;
         width: 100%;
         max-width: 100%;
-        height: 58vh;
+        height: auto;
         border-right: none;
         box-shadow: none;
+        overflow: visible;
     }
 
     .sidebar-header {
@@ -598,6 +617,7 @@ canvas#urduCanvas {
     .sidebar-content {
         padding: 10px;
         gap: 8px;
+        overflow: visible;
     }
 
     select, input[type="text"], input[type="number"], .btn {
@@ -623,9 +643,36 @@ canvas#urduCanvas {
         justify-content: center;
     }
 
+    /* Fixed Floating Mobile Download Action Bar */
     .sidebar-footer {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        z-index: 9999;
+        background-color: #ffffff;
+        border-top: 1px solid var(--border-color);
         padding: 10px 14px;
-        gap: 6px;
+        box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
+        display: flex;
+        gap: 8px;
+    }
+
+    .sidebar-footer .btn {
+        min-height: 46px;
+        font-size: 0.85rem;
+    }
+
+    .sidebar-footer .btn-success {
+        background-color: #059669;
+        color: #ffffff;
+        font-weight: 700;
+        box-shadow: 0 4px 14px rgba(5, 150, 105, 0.35);
+        flex: 1.4;
+    }
+
+    .sidebar-footer .btn-primary {
+        flex: 1;
     }
 }
 
@@ -640,7 +687,7 @@ canvas#urduCanvas {
     height: 100vh;
     background-color: rgba(15, 23, 42, 0.75);
     backdrop-filter: blur(4px);
-    z-index: 1000;
+    z-index: 10000;
     display: flex;
     align-items: center;
     justify-content: center;

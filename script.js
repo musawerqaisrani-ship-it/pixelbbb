@@ -220,6 +220,8 @@ document.addEventListener('DOMContentLoaded', () => {
         // Update Canvas Resizing Metrics
         canvas.width = widthPx;
         canvas.height = calculatedHeight;
+        canvas.style.maxWidth = '100%';
+        canvas.style.height = 'auto';
 
         // Update Toolbar Metrics Display
         dimensionDisplay.textContent = `${widthPx} x ${calculatedHeight} px`;
