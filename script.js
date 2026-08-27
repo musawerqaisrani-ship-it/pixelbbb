@@ -336,34 +336,74 @@ document.addEventListener('DOMContentLoaded', () => {
     const modalDoneBtn = document.getElementById('modalDoneBtn');
     const btnOpenNewTab = document.getElementById('btnOpenNewTab');
 
-    let currentBlobUrl = null;
+    let activeBlobUrls = [];
 
     /**
-     * Clean up active Blob URL to release memory on high-resolution canvases
+     * Clean up active Blob URLs to release memory on high-resolution canvases
      */
-    function cleanupBlobUrl() {
-        if (currentBlobUrl) {
-            URL.revokeObjectURL(currentBlobUrl);
-            currentBlobUrl = null;
+    function cleanupBlobUrls() {
+        if (activeBlobUrls.length > 0) {
+            activeBlobUrls.forEach(url => URL.revokeObjectURL(url));
+            activeBlobUrls = [];
         }
     }
 
     /**
      * Open Mobile Preview Modal for Long-Press Save Fallback
-     * @param {string} blobUrl 
+     * @param {string | Array<{url: string, filename: string}>} items 
      */
-    function openDownloadModal(blobUrl) {
+    function openDownloadModal(items) {
         if (!downloadModal || !modalPreviewImg) return;
-        modalPreviewImg.src = blobUrl;
+        const itemList = Array.isArray(items) ? items : [{ url: items, filename: 'text-image.png' }];
+
+        modalPreviewImg.src = itemList[0].url;
+
+        let multiWrapper = document.getElementById('modalMultiPreview');
+        if (!multiWrapper) {
+            multiWrapper = document.createElement('div');
+            multiWrapper.id = 'modalMultiPreview';
+            modalPreviewImg.parentNode.insertBefore(multiWrapper, modalPreviewImg.nextSibling);
+        }
+        multiWrapper.innerHTML = '';
+
+        if (itemList.length > 1) {
+            modalPreviewImg.style.display = 'none';
+            itemList.forEach((item, idx) => {
+                const card = document.createElement('div');
+                card.style.marginBottom = '14px';
+                card.style.textAlign = 'center';
+
+                const title = document.createElement('div');
+                title.textContent = `Part ${idx + 1}: ${item.filename}`;
+                title.style.fontWeight = '600';
+                title.style.fontSize = '0.85rem';
+                title.style.marginBottom = '6px';
+                title.style.color = '#2563eb';
+
+                const img = document.createElement('img');
+                img.src = item.url;
+                img.alt = item.filename;
+                img.style.maxWidth = '100%';
+                img.style.height = 'auto';
+                img.style.borderRadius = '4px';
+                img.style.border = '1px solid #e2e8f0';
+
+                card.appendChild(title);
+                card.appendChild(img);
+                multiWrapper.appendChild(card);
+            });
+        } else {
+            modalPreviewImg.style.display = 'block';
+        }
+
         downloadModal.style.display = 'flex';
-        // Force reflow for CSS transition
         downloadModal.offsetHeight;
         downloadModal.classList.add('active');
         downloadModal.setAttribute('aria-hidden', 'false');
     }
 
     /**
-     * Close Mobile Preview Modal and Revoke Blob URL
+     * Close Mobile Preview Modal and Revoke Blob URLs
      */
     function closeDownloadModal() {
         if (!downloadModal) return;
@@ -372,7 +412,9 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(() => {
             downloadModal.style.display = 'none';
             if (modalPreviewImg) modalPreviewImg.src = '';
-            cleanupBlobUrl();
+            const multiWrapper = document.getElementById('modalMultiPreview');
+            if (multiWrapper) multiWrapper.innerHTML = '';
+            cleanupBlobUrls();
         }, 250);
     }
 
@@ -388,11 +430,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (btnOpenNewTab) {
         btnOpenNewTab.addEventListener('click', () => {
-            if (currentBlobUrl) {
-                const newWin = window.open(currentBlobUrl, '_blank');
-                if (!newWin || newWin.closed || typeof newWin.closed === 'undefined') {
-                    statusText.textContent = 'Pop-up blocked. Touch & hold image to save.';
-                }
+            if (activeBlobUrls.length > 0) {
+                activeBlobUrls.forEach(url => {
+                    window.open(url, '_blank');
+                });
             }
         });
     }
@@ -421,20 +462,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            // Revoke any previous Blob URL before creating a new one
-            cleanupBlobUrl();
+            cleanupBlobUrls();
 
-            // Create object URL from binary Blob
-            currentBlobUrl = URL.createObjectURL(blob);
+            const blobUrl = URL.createObjectURL(blob);
+            activeBlobUrls.push(blobUrl);
+
             const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
             const filename = `text-image-export-${timestamp}.png`;
-
             const isMobile = isMobileDevice();
 
-            // 1. Cross-Platform Anchor Download Trigger
             const link = document.createElement('a');
             link.download = filename;
-            link.href = currentBlobUrl;
+            link.href = blobUrl;
             document.body.appendChild(link);
 
             let downloadTriggered = false;
@@ -448,26 +487,144 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.body.removeChild(link);
             }
 
-            // 2. Mobile Fallback (iOS Safari / Android Chrome / WebViews)
-            // Show preview modal overlay allowing long-press to save directly to Gallery / Photos
             if (isMobile) {
-                openDownloadModal(currentBlobUrl);
+                openDownloadModal({ url: blobUrl, filename: filename });
                 statusText.textContent = 'Ready - Touch & hold preview image to save to Photos';
             } else {
-                // Desktop: Schedule Blob URL cleanup after 10s delay to allow download stream to complete
-                const blobToRevoke = currentBlobUrl;
                 setTimeout(() => {
-                    if (currentBlobUrl === blobToRevoke) {
-                        cleanupBlobUrl();
-                    } else {
-                        URL.revokeObjectURL(blobToRevoke);
-                    }
+                    cleanupBlobUrls();
                 }, 10000);
 
                 statusText.textContent = downloadTriggered ? 'Image download started.' : 'Ready';
             }
 
         }, 'image/png', 1.0);
+    }
+
+    /**
+     * CapCut Slicing & Export Options
+     * Slice ultra-long dynamic text canvas vertically into standard 1080x1920 HD ratio image chunks
+     * and trigger batch download for each slice (text-part-1.png, text-part-2.png, etc.).
+     */
+    function downloadCapCutParts() {
+        if (!canvas) return;
+
+        const widthPx = parseInt(canvasWidth.value, 10) || 1080;
+        
+        // Standard 1080x1920 HD Ratio (16:9 vertical) slice height in logical pixels
+        const sliceLogicalWidth = widthPx;
+        const sliceLogicalHeight = Math.round(widthPx * (1920 / 1080));
+
+        // Get active High-DPI scale factor
+        const deviceScale = window.devicePixelRatio || 2;
+        const targetScale = Math.max(2, deviceScale);
+        const maxCanvasDim = 16384;
+        const currentScale = Math.max(1, Math.min(targetScale, Math.floor(maxCanvasDim / widthPx), Math.floor(maxCanvasDim / canvas.height)));
+
+        // Internal Bitmap Dimensions (Scaled) vs Slice Bitmap Dimensions
+        const bitmapWidth = canvas.width;
+        const bitmapHeight = canvas.height;
+        const sliceBitmapWidth = bitmapWidth;
+        const sliceBitmapHeight = Math.round(sliceLogicalHeight * currentScale);
+
+        // Calculate total slice count
+        const numSlices = Math.ceil(bitmapHeight / sliceBitmapHeight);
+
+        statusText.textContent = `Preparing ${numSlices} CapCut split part(s)...`;
+        cleanupBlobUrls();
+
+        const isMobile = isMobileDevice();
+        const generatedParts = [];
+        let currentSlice = 0;
+
+        function processSlice() {
+            if (currentSlice >= numSlices) {
+                if (isMobile) {
+                    openDownloadModal(generatedParts);
+                    statusText.textContent = `Ready - ${numSlices} CapCut part(s) available in preview modal`;
+                } else {
+                    statusText.textContent = `Successfully downloaded ${numSlices} CapCut split part(s).`;
+                    setTimeout(() => {
+                        cleanupBlobUrls();
+                    }, 15000);
+                }
+                return;
+            }
+
+            const sliceIndex = currentSlice;
+            const filename = `text-part-${sliceIndex + 1}.png`;
+
+            // Create offscreen canvas for current slice at high-DPI 1080x1920 HD ratio resolution
+            const sliceCanvas = document.createElement('canvas');
+            sliceCanvas.width = sliceBitmapWidth;
+            sliceCanvas.height = sliceBitmapHeight;
+
+            const sliceCtx = sliceCanvas.getContext('2d');
+            sliceCtx.imageSmoothingEnabled = true;
+            sliceCtx.imageSmoothingQuality = 'high';
+
+            // Fill background matching current canvas settings
+            if (bgMode.value === 'solid') {
+                sliceCtx.fillStyle = bgColor.value;
+                sliceCtx.fillRect(0, 0, sliceCanvas.width, sliceCanvas.height);
+            } else if (bgMode.value === 'gradient') {
+                const grad = sliceCtx.createLinearGradient(0, 0, 0, sliceCanvas.height);
+                grad.addColorStop(0, bgColor.value);
+                grad.addColorStop(1, adjustColorBrightness(bgColor.value, -30));
+                sliceCtx.fillStyle = grad;
+                sliceCtx.fillRect(0, 0, sliceCanvas.width, sliceCanvas.height);
+            } else {
+                sliceCtx.clearRect(0, 0, sliceCanvas.width, sliceCanvas.height);
+            }
+
+            // Calculate source crop height from main canvas bitmap
+            const sy = sliceIndex * sliceBitmapHeight;
+            const sh = Math.min(sliceBitmapHeight, bitmapHeight - sy);
+
+            // Draw bitmap slice onto slice canvas
+            sliceCtx.drawImage(
+                canvas,
+                0, sy, sliceBitmapWidth, sh,
+                0, 0, sliceBitmapWidth, sh
+            );
+
+            // Export slice as high quality PNG blob
+            sliceCanvas.toBlob((blob) => {
+                if (!blob) {
+                    console.error(`Failed to create blob for slice ${sliceIndex + 1}`);
+                    currentSlice++;
+                    processSlice();
+                    return;
+                }
+
+                const blobUrl = URL.createObjectURL(blob);
+                activeBlobUrls.push(blobUrl);
+                generatedParts.push({ url: blobUrl, filename: filename });
+
+                // Trigger batch download on desktop
+                if (!isMobile) {
+                    const link = document.createElement('a');
+                    link.download = filename;
+                    link.href = blobUrl;
+                    document.body.appendChild(link);
+                    try {
+                        link.click();
+                    } catch (e) {
+                        console.warn(`Click failed for ${filename}`, e);
+                    } finally {
+                        document.body.removeChild(link);
+                    }
+                }
+
+                statusText.textContent = `Downloaded CapCut part ${sliceIndex + 1} of ${numSlices}...`;
+                currentSlice++;
+
+                // Delay slightly (350ms) between downloads to avoid browser throttling
+                setTimeout(processSlice, isMobile ? 50 : 350);
+            }, 'image/png', 1.0);
+        }
+
+        processSlice();
     }
 
     // Attach Event Listeners for Live Updates
@@ -499,6 +656,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     btnGenerate.addEventListener('click', renderCanvas);
     btnDownload.addEventListener('click', downloadPNG);
+    if (btnDownloadCapCut) {
+        btnDownloadCapCut.addEventListener('click', downloadCapCutParts);
+    }
 
     // Initial Font Load Triggers
     if (document.fonts) {
