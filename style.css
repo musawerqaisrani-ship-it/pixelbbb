@@ -453,6 +453,17 @@ input[type="color"]::-webkit-color-swatch {
     transform: translateY(-1px);
 }
 
+.btn-capcut {
+    background-color: #8b5cf6;
+    color: #ffffff;
+    box-shadow: 0 2px 6px rgba(139, 92, 246, 0.25);
+}
+
+.btn-capcut:hover {
+    background-color: #7c3aed;
+    transform: translateY(-1px);
+}
+
 .btn svg {
     width: 18px;
     height: 18px;
@@ -652,15 +663,21 @@ canvas#urduCanvas {
         z-index: 9999;
         background-color: #ffffff;
         border-top: 1px solid var(--border-color);
-        padding: 10px 14px;
+        padding: 8px 10px;
         box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
         display: flex;
-        gap: 8px;
+        flex-wrap: wrap;
+        gap: 6px;
     }
 
     .sidebar-footer .btn {
-        min-height: 46px;
-        font-size: 0.85rem;
+        min-height: 42px;
+        font-size: 0.8rem;
+        padding: 6px 8px;
+    }
+
+    .sidebar-footer .btn-primary {
+        flex: 1 1 calc(50% - 3px);
     }
 
     .sidebar-footer .btn-success {
@@ -668,11 +685,15 @@ canvas#urduCanvas {
         color: #ffffff;
         font-weight: 700;
         box-shadow: 0 4px 14px rgba(5, 150, 105, 0.35);
-        flex: 1.4;
+        flex: 1 1 calc(50% - 3px);
     }
 
-    .sidebar-footer .btn-primary {
-        flex: 1;
+    .sidebar-footer .btn-capcut {
+        flex: 1 1 100%;
+        background-color: #8b5cf6;
+        color: #ffffff;
+        font-weight: 700;
+        box-shadow: 0 4px 14px rgba(139, 92, 246, 0.35);
     }
 }
 

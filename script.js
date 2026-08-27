@@ -42,6 +42,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Buttons & Info Displays
     const btnGenerate = document.getElementById('btnGenerate');
     const btnDownload = document.getElementById('btnDownload');
+    const btnDownloadCapCut = document.getElementById('btnDownloadCapCut');
     const dimensionDisplay = document.getElementById('dimensionDisplay');
     const lineCountDisplay = document.getElementById('lineCountDisplay');
     const statusText = document.getElementById('statusText');
@@ -173,7 +174,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     /**
-     * Main Canvas Render Engine
+     * Main Canvas Render Engine with High-DPI Ultra Crisp Rendering
      */
     function renderCanvas() {
         const textValue = urduText.value;
@@ -217,14 +218,28 @@ document.addEventListener('DOMContentLoaded', () => {
         // Strict boundary cap at 20,000px
         const calculatedHeight = Math.min(20000, Math.max(200, Math.ceil(totalContentHeight)));
 
-        // Update Canvas Resizing Metrics
-        canvas.width = widthPx;
-        canvas.height = calculatedHeight;
-        canvas.style.maxWidth = '100%';
+        // High-DPI Canvas Scaling (2x/3x Resolution for Crisp Rendering)
+        const deviceScale = window.devicePixelRatio || 2;
+        const targetScale = Math.max(2, deviceScale);
+        const maxCanvasDim = 16384;
+        const scale = Math.max(1, Math.min(targetScale, Math.floor(maxCanvasDim / widthPx), Math.floor(maxCanvasDim / calculatedHeight)));
+
+        // Internal Bitmap Dimensions (Scaled) vs CSS Layout Dimensions
+        canvas.width = Math.floor(widthPx * scale);
+        canvas.height = Math.floor(calculatedHeight * scale);
+        canvas.style.width = `${widthPx}px`;
         canvas.style.height = 'auto';
+        canvas.style.maxWidth = '100%';
+
+        // Enable High-Quality Text & Image Smoothing
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+
+        // Scale Context Matrix to match logical CSS coordinates
+        ctx.scale(scale, scale);
 
         // Update Toolbar Metrics Display
-        dimensionDisplay.textContent = `${widthPx} x ${calculatedHeight} px`;
+        dimensionDisplay.textContent = `${widthPx} x ${calculatedHeight} px (${scale}x HD)`;
         lineCountDisplay.textContent = `Lines: ${wrappedLines.length}`;
 
         // Re-apply Context State Post Resizing
@@ -235,16 +250,16 @@ document.addEventListener('DOMContentLoaded', () => {
         // 1. Render Background
         if (bgMode.value === 'solid') {
             ctx.fillStyle = bgColor.value;
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillRect(0, 0, widthPx, calculatedHeight);
         } else if (bgMode.value === 'gradient') {
-            const grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            const grad = ctx.createLinearGradient(0, 0, 0, calculatedHeight);
             grad.addColorStop(0, bgColor.value);
             grad.addColorStop(1, adjustColorBrightness(bgColor.value, -30));
             ctx.fillStyle = grad;
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillRect(0, 0, widthPx, calculatedHeight);
         } else {
             // Transparent Mode
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.clearRect(0, 0, widthPx, calculatedHeight);
         }
 
         // 2. Resolve Text Alignment & X Coordinates Mapping
@@ -297,7 +312,7 @@ document.addEventListener('DOMContentLoaded', () => {
             ctx.fillText(line, startX, baselineY);
         });
 
-        statusText.textContent = `Ready (${wrappedLines.length} lines, ${calculatedHeight}px height, ${activeDir.toUpperCase()})`;
+        statusText.textContent = `Ready (${wrappedLines.length} lines, ${calculatedHeight}px height, ${scale}x scale, ${activeDir.toUpperCase()})`;
     }
 
     /**
