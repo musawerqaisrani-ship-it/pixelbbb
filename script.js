@@ -181,7 +181,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const fontName = fontFamily.value;
         const sizePx = parseInt(fontSize.value, 10) || 36;
         const lhMult = parseFloat(lineHeight.value);
-        const widthPx = parseInt(canvasWidth.value, 10);
+        const widthPx = parseInt(canvasWidth.value, 10) || 2160;
         const padPx = parseInt(canvasPadding.value, 10);
         const strWidth = parseInt(strokeWidth.value, 10);
         const shBlur = parseInt(shadowBlur.value, 10);
@@ -218,28 +218,29 @@ document.addEventListener('DOMContentLoaded', () => {
         // Strict boundary cap at 20,000px
         const calculatedHeight = Math.min(20000, Math.max(200, Math.ceil(totalContentHeight)));
 
-        // High-DPI Canvas Scaling (2x/3x Resolution for Crisp Rendering)
+        // Ultra 4K High-DPI Canvas Supersampling (2x/4K Ultra Sharp Scale Factor)
+        const scaleFactor = 2; // 2x/4K Ultra Sharp Scale
         const deviceScale = window.devicePixelRatio || 2;
-        const targetScale = Math.max(2, deviceScale);
+        const targetScale = Math.max(scaleFactor, deviceScale);
         const maxCanvasDim = 16384;
         const scale = Math.max(1, Math.min(targetScale, Math.floor(maxCanvasDim / widthPx), Math.floor(maxCanvasDim / calculatedHeight)));
 
-        // Internal Bitmap Dimensions (Scaled) vs CSS Layout Dimensions
+        // Set Real Internal Pixel Resolution & CSS Visual Display Size
         canvas.width = Math.floor(widthPx * scale);
         canvas.height = Math.floor(calculatedHeight * scale);
-        canvas.style.width = `${widthPx}px`;
-        canvas.style.height = 'auto';
+        canvas.style.width = widthPx + 'px';
+        canvas.style.height = calculatedHeight + 'px';
         canvas.style.maxWidth = '100%';
 
-        // Enable High-Quality Text & Image Smoothing
+        // Enable High-Quality Text & Image Smoothing Properties
         ctx.imageSmoothingEnabled = true;
         ctx.imageSmoothingQuality = 'high';
 
-        // Scale Context Matrix to match logical CSS coordinates
+        // Apply Context Scaling Prior to Drawing
         ctx.scale(scale, scale);
 
         // Update Toolbar Metrics Display
-        dimensionDisplay.textContent = `${widthPx} x ${calculatedHeight} px (${scale}x HD)`;
+        dimensionDisplay.textContent = `${widthPx} x ${calculatedHeight} px (${scale}x 4K HD)`;
         lineCountDisplay.textContent = `Lines: ${wrappedLines.length}`;
 
         // Re-apply Context State Post Resizing
@@ -509,7 +510,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function downloadCapCutParts() {
         if (!canvas) return;
 
-        const widthPx = parseInt(canvasWidth.value, 10) || 1080;
+        const widthPx = parseInt(canvasWidth.value, 10) || 2160;
         
         // Standard 1080x1920 HD Ratio (16:9 vertical) slice height in logical pixels
         const sliceLogicalWidth = widthPx;
