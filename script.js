@@ -173,142 +173,8 @@ document.addEventListener('DOMContentLoaded', () => {
         return wrappedLines;
     }
 
-    // SVG Preview Container Element
-    const svgPreviewContainer = document.getElementById('svgPreviewContainer');
-
     /**
-     * XML Character Escaping Helper for SVG text nodes
-     */
-    function escapeXML(str) {
-        if (!str) return '';
-        return str
-            .replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;')
-            .replace(/"/g, '&quot;')
-            .replace(/'/g, '&apos;');
-    }
-
-    /**
-     * Build SVG string with embedded web fonts, vector styling, and crisp typography rendering
-     */
-    function generateSVGString({
-        textValue,
-        fontName,
-        sizePx,
-        lhMult,
-        widthPx,
-        padPx,
-        strColor,
-        strWidth,
-        shColor,
-        shBlur,
-        textColorVal,
-        bgColorVal,
-        bgModeVal,
-        activeDir,
-        currentAlign,
-        isBold,
-        isItalic,
-        wrappedLines,
-        calculatedHeight
-    }) {
-        const lineSpacingPx = sizePx * lhMult;
-
-        let resolvedAlign = currentAlign;
-        if (resolvedAlign === 'auto') {
-            resolvedAlign = (activeDir === 'rtl') ? 'right' : 'left';
-        }
-
-        let startX;
-        let textAnchor;
-        if (resolvedAlign === 'right') {
-            startX = widthPx - padPx;
-            textAnchor = 'end';
-        } else if (resolvedAlign === 'center') {
-            startX = widthPx / 2;
-            textAnchor = 'middle';
-        } else {
-            startX = padPx;
-            textAnchor = 'start';
-        }
-
-        let bgElement = '';
-        if (bgModeVal === 'solid') {
-            bgElement = `<rect width="100%" height="100%" fill="${bgColorVal}"/>`;
-        } else if (bgModeVal === 'gradient') {
-            const darkBg = adjustColorBrightness(bgColorVal, -30);
-            bgElement = `
-    <defs>
-      <linearGradient id="svgBgGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-        <stop offset="0%" stop-color="${bgColorVal}"/>
-        <stop offset="100%" stop-color="${darkBg}"/>
-      </linearGradient>
-    </defs>
-    <rect width="100%" height="100%" fill="url(#svgBgGrad)"/>`;
-        }
-
-        let filterDef = '';
-        let filterAttr = '';
-        if (shBlur > 0) {
-            filterDef = `
-    <filter id="svgTextShadow" x="-20%" y="-20%" width="140%" height="140%">
-      <feDropShadow dx="3" dy="3" stdDeviation="${shBlur / 2}" flood-color="${shColor}" flood-opacity="0.8"/>
-    </filter>`;
-            filterAttr = `filter="url(#svgTextShadow)"`;
-        }
-
-        const fontStyleStr = isItalic ? 'italic' : 'normal';
-        const fontWeightStr = isBold ? 'bold' : 'normal';
-        const strokeAttr = strWidth > 0 ? `stroke="${strColor}" stroke-width="${strWidth * 2}" stroke-linejoin="round" stroke-miterlimit="2" paint-order="stroke fill"` : '';
-
-        const textLinesSVG = wrappedLines.map((line, index) => {
-            const baselineY = padPx + (index * lineSpacingPx) + (sizePx * 0.85);
-            return `<text x="${startX}" y="${baselineY}" 
-                          font-family="'${fontName}', 'Noto Nastaliq Urdu', sans-serif" 
-                          font-size="${sizePx}px" 
-                          font-weight="${fontWeightStr}" 
-                          font-style="${fontStyleStr}" 
-                          fill="${textColorVal}" 
-                          text-anchor="${textAnchor}" 
-                          direction="${activeDir}" 
-                          ${strokeAttr} 
-                          ${filterAttr}
-                          shape-rendering="geometricPrecision" 
-                          text-rendering="optimizeLegibility" 
-                          style="-webkit-font-smoothing: antialiased;"
-                    >${escapeXML(line)}</text>`;
-        }).join('\n    ');
-
-        return `<?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" width="${widthPx}" height="${calculatedHeight}" viewBox="0 0 ${widthPx} ${calculatedHeight}">
-  <defs>
-    <style>
-      @import url('https://fonts.googleapis.com/css2?family=Noto+Nastaliq+Urdu:wght@400;700&display=swap');
-      @font-face {
-          font-family: 'Jameel Noori Nastaliq';
-          src: url('./fonts/JameelNooriNastaliq.ttf') format('truetype');
-          font-weight: normal;
-          font-style: normal;
-      }
-      text {
-          shape-rendering: geometricPrecision;
-          text-rendering: optimizeLegibility;
-          -webkit-font-smoothing: antialiased;
-          -moz-osx-font-smoothing: grayscale;
-      }
-    </style>
-    ${filterDef}
-  </defs>
-  ${bgElement}
-  <g class="text-content">
-    ${textLinesSVG}
-  </g>
-</svg>`;
-    }
-
-    /**
-     * Vector SVG-Based Ultra-Sharp Renderer Engine
+     * Extreme 4K Sharpness Engine - Main HTML5 Canvas Render Engine
      */
     function renderCanvas() {
         const textValue = urduText.value;
@@ -319,11 +185,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const padPx = parseInt(canvasPadding.value, 10);
         const strWidth = parseInt(strokeWidth.value, 10);
         const shBlur = parseInt(shadowBlur.value, 10);
-        const strColor = strokeColor.value;
-        const shColor = shadowColor.value;
-        const textColorVal = textColor.value;
-        const bgColorVal = bgColor.value;
-        const bgModeVal = bgMode.value;
 
         // Determine Active Direction (Auto vs Explicit)
         const selectedDirSetting = textDirection.value;
@@ -339,7 +200,7 @@ document.addEventListener('DOMContentLoaded', () => {
         strokeWidthVal.textContent = `${strWidth}px`;
         shadowBlurVal.textContent = `${shBlur}px`;
 
-        // Configure Font Specification for Measurement
+        // Configure Font Specification
         const fontStyle = isItalic.checked ? 'italic ' : '';
         const fontWeight = isBold.checked ? 'bold ' : '';
         const fontSpec = `${fontStyle}${fontWeight}${sizePx}px "${fontName}", "Noto Nastaliq Urdu", sans-serif`;
@@ -350,74 +211,112 @@ document.addEventListener('DOMContentLoaded', () => {
         const maxContentWidth = Math.max(100, widthPx - (padPx * 2));
         const wrappedLines = getWrappedLines(ctx, textValue, maxContentWidth);
 
-        // Auto-Expanding Height Calculation (Cap at 20,000px)
+        // Dynamic Height Calculation: Bounded up to 20,000px height smoothly
         const lineSpacingPx = sizePx * lhMult;
         const totalContentHeight = (wrappedLines.length * lineSpacingPx) + (padPx * 2);
         const calculatedHeight = Math.min(20000, Math.max(200, Math.ceil(totalContentHeight)));
 
-        // Generate Ultra-Sharp Vector SVG Output
-        const svgString = generateSVGString({
-            textValue,
-            fontName,
-            sizePx,
-            lhMult,
-            widthPx,
-            padPx,
-            strColor,
-            strWidth,
-            shColor,
-            shBlur,
-            textColorVal,
-            bgColorVal,
-            bgModeVal,
-            activeDir,
-            currentAlign,
-            isBold: isBold.checked,
-            isItalic: isItalic.checked,
-            wrappedLines,
-            calculatedHeight
-        });
-
-        // 1. Synchronized Vector SVG Live Preview (100% Crisp Vector, Identical to Export)
-        if (svgPreviewContainer) {
-            svgPreviewContainer.innerHTML = svgString;
-        }
-
-        // 2. High-DPI SVG-to-Canvas Conversion (devicePixelRatio = 4 for 8K Ultra HD PNG & CapCut Slicing)
-        const deviceScale = window.devicePixelRatio || 4;
-        const targetScale = Math.max(4, deviceScale);
+        // Resolution Supersampling: Use 2.5x Scale Factor for maximum crispness
+        const scale = 2.5;
         const maxCanvasDim = 16384;
-        const scale = Math.max(1, Math.min(targetScale, Math.floor(maxCanvasDim / widthPx), Math.floor(maxCanvasDim / calculatedHeight)));
+        const safeScale = Math.max(1, Math.min(scale, Math.floor(maxCanvasDim / widthPx), Math.floor(maxCanvasDim / calculatedHeight)));
 
-        const targetBitmapWidth = Math.floor(widthPx * scale);
-        const targetBitmapHeight = Math.floor(calculatedHeight * scale);
-
-        canvas.width = targetBitmapWidth;
-        canvas.height = targetBitmapHeight;
-        canvas.style.width = `${widthPx}px`;
-        canvas.style.height = `${calculatedHeight}px`;
-
-        // Bake SVG vector into 4x bitmap on Canvas
-        const svgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
-        const svgUrl = URL.createObjectURL(svgBlob);
-        const img = new Image();
-
-        img.onload = () => {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.imageSmoothingEnabled = true;
-            ctx.imageSmoothingQuality = 'high';
-            ctx.drawImage(img, 0, 0, targetBitmapWidth, targetBitmapHeight);
-            URL.revokeObjectURL(svgUrl);
-            statusText.textContent = `Ready - SVG Vector Synchronized (${wrappedLines.length} lines, ${widthPx}x${calculatedHeight}px @ ${scale}x Ultra HD)`;
-        };
-        img.onerror = () => {
-            URL.revokeObjectURL(svgUrl);
-        };
-        img.src = svgUrl;
+        // Set Real Internal Pixel Resolution & CSS Visual Display Size
+        canvas.width = Math.floor(widthPx * safeScale);
+        canvas.height = Math.floor(calculatedHeight * safeScale);
+        canvas.style.width = widthPx + 'px';
+        canvas.style.height = 'auto';
+        canvas.style.maxWidth = '100%';
 
         // Update Toolbar Metrics Display
-        dimensionDisplay.textContent = `${widthPx} x ${calculatedHeight} px (${scale}x Vector 8K)`;
+        dimensionDisplay.textContent = `${widthPx} x ${calculatedHeight} px (${safeScale}x 4K HD)`;
         lineCountDisplay.textContent = `Lines: ${wrappedLines.length}`;
+
+        // Configure Context State Post Resizing & Apply Scale Transform
+        ctx.font = fontSpec;
+        ctx.direction = activeDir;
+        ctx.textBaseline = 'alphabetic';
+
+        // Crisp Text Enhancements (Prevent CapCut Blur)
+        ctx.imageSmoothingEnabled = false;
+        if ('textRendering' in ctx) {
+            ctx.textRendering = 'geometricPrecision';
+        }
+
+        ctx.scale(safeScale, safeScale);
+
+        // 1. Render Background
+        if (bgMode.value === 'solid') {
+            ctx.fillStyle = bgColor.value;
+            ctx.fillRect(0, 0, widthPx, calculatedHeight);
+        } else if (bgMode.value === 'gradient') {
+            const grad = ctx.createLinearGradient(0, 0, 0, calculatedHeight);
+            grad.addColorStop(0, bgColor.value);
+            grad.addColorStop(1, adjustColorBrightness(bgColor.value, -30));
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, widthPx, calculatedHeight);
+        } else {
+            // Transparent Mode
+            ctx.clearRect(0, 0, widthPx, calculatedHeight);
+        }
+
+        // 2. Resolve Text Alignment & X Coordinates Mapping
+        let resolvedAlign = currentAlign;
+        if (resolvedAlign === 'auto') {
+            resolvedAlign = (activeDir === 'rtl') ? 'right' : 'left';
+        }
+
+        let startX;
+        if (resolvedAlign === 'right') {
+            startX = widthPx - padPx;
+            ctx.textAlign = 'right';
+        } else if (resolvedAlign === 'center') {
+            startX = widthPx / 2;
+            ctx.textAlign = 'center';
+        } else {
+            // Left alignment
+            startX = padPx;
+            ctx.textAlign = 'left';
+        }
+
+        // 3. Render Text Lines with Stroke, Crisp Edge & Shadow Effects
+        wrappedLines.forEach((line, index) => {
+            const baselineY = padPx + (index * lineSpacingPx) + (sizePx * 0.85);
+
+            // Configure Text Shadow
+            if (shBlur > 0) {
+                ctx.shadowColor = shadowColor.value;
+                ctx.shadowBlur = shBlur;
+                ctx.shadowOffsetX = 3;
+                ctx.shadowOffsetY = 3;
+            } else {
+                ctx.shadowColor = 'transparent';
+                ctx.shadowBlur = 0;
+                ctx.shadowOffsetX = 0;
+                ctx.shadowOffsetY = 0;
+            }
+
+            // Configure Text Stroke & Subtle Crisp Outline Edge (0.8px) to Sharpen Font Glyph Edges
+            if (strWidth > 0) {
+                ctx.strokeStyle = strokeColor.value;
+                ctx.lineWidth = strWidth * 2;
+                ctx.lineJoin = 'round';
+                ctx.miterLimit = 2;
+                ctx.strokeText(line, startX, baselineY);
+            } else {
+                // Subtle crisp edge stroke to permanently sharpen typography against video editor compression
+                ctx.strokeStyle = textColor.value;
+                ctx.lineWidth = 0.8;
+                ctx.lineJoin = 'round';
+                ctx.strokeText(line, startX, baselineY);
+            }
+
+            // Fill Primary Text
+            ctx.fillStyle = textColor.value;
+            ctx.fillText(line, startX, baselineY);
+        });
+
+        statusText.textContent = `Ready (${wrappedLines.length} lines, ${calculatedHeight}px height, ${safeScale}x 4K scale, ${activeDir.toUpperCase()})`;
     }
 
     /**
@@ -620,9 +519,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const sliceLogicalWidth = widthPx;
         const sliceLogicalHeight = Math.round(widthPx * (1920 / 1080));
 
-        // Get active High-DPI scale factor (4x Ultra HD 8K Vector Scale)
-        const scaleFactor = 4;
-        const deviceScale = window.devicePixelRatio || 4;
+        // Get active High-DPI scale factor (2.5x Extreme 4K Sharpness Scale)
+        const scaleFactor = 2.5;
+        const deviceScale = window.devicePixelRatio || 2.5;
         const targetScale = Math.max(scaleFactor, deviceScale);
         const maxCanvasDim = 16384;
         const currentScale = Math.max(1, Math.min(targetScale, Math.floor(maxCanvasDim / widthPx), Math.floor(maxCanvasDim / canvas.height)));
