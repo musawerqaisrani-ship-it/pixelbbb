@@ -216,12 +216,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const totalContentHeight = (wrappedLines.length * lineSpacingPx) + (padPx * 2);
         const calculatedHeight = Math.min(20000, Math.max(200, Math.ceil(totalContentHeight)));
 
-        // Resolution Supersampling: Use 2.5x Scale Factor for maximum crispness
-        const scale = 2.5;
+        // Ultra 4K Dynamic Resolution Supersampling: 3x Scale Factor for Ultra HD Crisp Vector-like Edges
+        const scale = 3;
         const maxCanvasDim = 16384;
         const safeScale = Math.max(1, Math.min(scale, Math.floor(maxCanvasDim / widthPx), Math.floor(maxCanvasDim / calculatedHeight)));
 
-        // Set Real Internal Pixel Resolution & CSS Visual Display Size
+        // Set Real Internal Pixel Resolution (3x) & CSS Visual Display Size
         canvas.width = Math.floor(widthPx * safeScale);
         canvas.height = Math.floor(calculatedHeight * safeScale);
         canvas.style.width = widthPx + 'px';
@@ -229,7 +229,7 @@ document.addEventListener('DOMContentLoaded', () => {
         canvas.style.maxWidth = '100%';
 
         // Update Toolbar Metrics Display
-        dimensionDisplay.textContent = `${widthPx} x ${calculatedHeight} px (${safeScale}x 4K HD)`;
+        dimensionDisplay.textContent = `${widthPx} x ${calculatedHeight} px (${safeScale}x 4K UHD)`;
         lineCountDisplay.textContent = `Lines: ${wrappedLines.length}`;
 
         // Configure Context State Post Resizing & Apply Scale Transform
@@ -237,7 +237,7 @@ document.addEventListener('DOMContentLoaded', () => {
         ctx.direction = activeDir;
         ctx.textBaseline = 'alphabetic';
 
-        // Crisp Text Enhancements (Prevent CapCut Blur)
+        // High-Precision Text Rendering & Crispness Properties (Prevent CapCut Blur)
         ctx.imageSmoothingEnabled = false;
         if ('textRendering' in ctx) {
             ctx.textRendering = 'geometricPrecision';
@@ -279,7 +279,7 @@ document.addEventListener('DOMContentLoaded', () => {
             ctx.textAlign = 'left';
         }
 
-        // 3. Render Text Lines with Stroke, Crisp Edge & Shadow Effects
+        // 3. Render Text Lines with Stroke, Razor-Sharp Outline & Shadow Effects
         wrappedLines.forEach((line, index) => {
             const baselineY = padPx + (index * lineSpacingPx) + (sizePx * 0.85);
 
@@ -296,7 +296,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 ctx.shadowOffsetY = 0;
             }
 
-            // Configure Text Stroke & Subtle Crisp Outline Edge (0.8px) to Sharpen Font Glyph Edges
+            // Configure Text Stroke & Razor-Sharp Text Outline (0.8px) Matching Text Color
             if (strWidth > 0) {
                 ctx.strokeStyle = strokeColor.value;
                 ctx.lineWidth = strWidth * 2;
@@ -304,7 +304,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 ctx.miterLimit = 2;
                 ctx.strokeText(line, startX, baselineY);
             } else {
-                // Subtle crisp edge stroke to permanently sharpen typography against video editor compression
+                // Subtle razor-sharp text outline matching text color to prevent video compression artifacts
                 ctx.strokeStyle = textColor.value;
                 ctx.lineWidth = 0.8;
                 ctx.lineJoin = 'round';
@@ -316,7 +316,7 @@ document.addEventListener('DOMContentLoaded', () => {
             ctx.fillText(line, startX, baselineY);
         });
 
-        statusText.textContent = `Ready (${wrappedLines.length} lines, ${calculatedHeight}px height, ${safeScale}x 4K scale, ${activeDir.toUpperCase()})`;
+        statusText.textContent = `Ready (${wrappedLines.length} lines, ${calculatedHeight}px height, ${safeScale}x 4K UHD scale, ${activeDir.toUpperCase()})`;
     }
 
     /**
@@ -519,9 +519,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const sliceLogicalWidth = widthPx;
         const sliceLogicalHeight = Math.round(widthPx * (1920 / 1080));
 
-        // Get active High-DPI scale factor (2.5x Extreme 4K Sharpness Scale)
-        const scaleFactor = 2.5;
-        const deviceScale = window.devicePixelRatio || 2.5;
+        // Get active High-DPI scale factor (3x Ultra 4K Sharpness Scale)
+        const scaleFactor = 3;
+        const deviceScale = window.devicePixelRatio || 3;
         const targetScale = Math.max(scaleFactor, deviceScale);
         const maxCanvasDim = 16384;
         const currentScale = Math.max(1, Math.min(targetScale, Math.floor(maxCanvasDim / widthPx), Math.floor(maxCanvasDim / canvas.height)));
