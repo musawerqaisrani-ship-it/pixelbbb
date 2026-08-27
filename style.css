@@ -540,6 +540,8 @@ canvas#urduCanvas {
     max-width: 100%;
     height: auto;
     border-radius: var(--radius-sm);
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
 }
 
 /* Floating Status Indicator */

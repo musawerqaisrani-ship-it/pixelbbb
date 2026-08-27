@@ -218,9 +218,9 @@ document.addEventListener('DOMContentLoaded', () => {
         // Strict boundary cap at 20,000px
         const calculatedHeight = Math.min(20000, Math.max(200, Math.ceil(totalContentHeight)));
 
-        // Ultra 4K High-DPI Canvas Supersampling (2x/4K Ultra Sharp Scale Factor)
-        const scaleFactor = 2; // 2x/4K Ultra Sharp Scale
-        const deviceScale = window.devicePixelRatio || 2;
+        // Ultra Sharp 6K High-DPI Canvas Supersampling (3x Scale Factor for Crisp Vector Quality)
+        const scaleFactor = 3; // 3x Ultra-HD 6K Crisp Scale
+        const deviceScale = window.devicePixelRatio || 3;
         const targetScale = Math.max(scaleFactor, deviceScale);
         const maxCanvasDim = 16384;
         const scale = Math.max(1, Math.min(targetScale, Math.floor(maxCanvasDim / widthPx), Math.floor(maxCanvasDim / calculatedHeight)));
@@ -232,15 +232,17 @@ document.addEventListener('DOMContentLoaded', () => {
         canvas.style.height = calculatedHeight + 'px';
         canvas.style.maxWidth = '100%';
 
-        // Enable High-Quality Text & Image Smoothing Properties
-        ctx.imageSmoothingEnabled = true;
-        ctx.imageSmoothingQuality = 'high';
+        // Configure Crisp Vector Precision & Image Smoothing Properties
+        ctx.imageSmoothingEnabled = false; // Disable blur-smoothing to keep font pixels razor-sharp
+        if ('textRendering' in ctx) {
+            ctx.textRendering = 'geometricPrecision';
+        }
 
         // Apply Context Scaling Prior to Drawing
         ctx.scale(scale, scale);
 
         // Update Toolbar Metrics Display
-        dimensionDisplay.textContent = `${widthPx} x ${calculatedHeight} px (${scale}x 4K HD)`;
+        dimensionDisplay.textContent = `${widthPx} x ${calculatedHeight} px (${scale}x 6K HD)`;
         lineCountDisplay.textContent = `Lines: ${wrappedLines.length}`;
 
         // Re-apply Context State Post Resizing
@@ -516,9 +518,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const sliceLogicalWidth = widthPx;
         const sliceLogicalHeight = Math.round(widthPx * (1920 / 1080));
 
-        // Get active High-DPI scale factor
-        const deviceScale = window.devicePixelRatio || 2;
-        const targetScale = Math.max(2, deviceScale);
+        // Get active High-DPI scale factor (3x Ultra HD 6K Crisp Scale)
+        const scaleFactor = 3;
+        const deviceScale = window.devicePixelRatio || 3;
+        const targetScale = Math.max(scaleFactor, deviceScale);
         const maxCanvasDim = 16384;
         const currentScale = Math.max(1, Math.min(targetScale, Math.floor(maxCanvasDim / widthPx), Math.floor(maxCanvasDim / canvas.height)));
 
@@ -561,8 +564,10 @@ document.addEventListener('DOMContentLoaded', () => {
             sliceCanvas.height = sliceBitmapHeight;
 
             const sliceCtx = sliceCanvas.getContext('2d');
-            sliceCtx.imageSmoothingEnabled = true;
-            sliceCtx.imageSmoothingQuality = 'high';
+            sliceCtx.imageSmoothingEnabled = false; // Disable blur-smoothing to keep font pixels razor-sharp
+            if ('textRendering' in sliceCtx) {
+                sliceCtx.textRendering = 'geometricPrecision';
+            }
 
             // Fill background matching current canvas settings
             if (bgMode.value === 'solid') {
