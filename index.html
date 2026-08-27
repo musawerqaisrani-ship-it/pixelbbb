@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Text to Image Canvas Generator - PixelLab</title>
+    <!-- Google Fonts Preconnect & CDN Web Fonts Integration -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Nastaliq+Urdu:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Left Sidebar Controls -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="app-title">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14zm-5-7c.83 0 1.5-.67 1.5-1.5S14.83 9 14 9s-1.5.67-1.5 1.5.67 1.5 1.5 1.5zm-6 2l2.5 3.01L14.5 13l4.5 6H5l3-4z"/>
+                    </svg>
+                    <span>Text to Image Generator</span>
+                    <span class="app-badge">Ultra-Long Canvas</span>
+                </div>
+            </div>
+
+            <div class="sidebar-content">
+                <!-- Text Input & Language Panel -->
+                <div class="panel-card">
+                    <div class="card-title">
+                        <svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
+                        <span>Text Input & Language</span>
+                    </div>
+
+                    <!-- Language & Text Direction Selector -->
+                    <div class="form-group">
+                        <label class="form-label" for="textDirection">Text Direction</label>
+                        <select id="textDirection">
+                            <option value="auto" selected>Auto Detect</option>
+                            <option value="rtl">Right to Left (RTL)</option>
+                            <option value="ltr">Left to Right (LTR)</option>
+                        </select>
+                    </div>
+
+                    <!-- Main Textarea Input -->
+                    <div class="form-group">
+                        <label class="form-label" for="urduText">Content</label>
+                        <textarea id="urduText" class="text-input" placeholder="Type or paste your long text here..." rows="4">This is a sample text preview. You can type or paste long text paragraphs here to generate high-resolution dynamic images up to 20,000px height. Adjust fonts, padding, colors, shadows, and alignment in real-time.</textarea>
+                    </div>
+                </div>
+
+                <!-- Font & Typography Controls -->
+                <div class="panel-card">
+                    <div class="card-title">
+                        <svg viewBox="0 0 24 24"><path d="M9.93 13.5h4.14L12 7.98zM20 2H4c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-4.05 16.5l-1.14-3H9.17l-1.12 3H5.96l5.11-13h1.86l5.11 13h-2.09z"/></svg>
+                        <span>Typography & Font</span>
+                    </div>
+
+                    <!-- Font Family Selector (Strictly 2 Font Options) -->
+                    <div class="form-group">
+                        <label class="form-label" for="fontFamily">Font Family</label>
+                        <select id="fontFamily">
+                            <option value="Jameel Noori Nastaliq" selected>Jameel Noori Nastaliq (Local TTF)</option>
+                            <option value="Noto Nastaliq Urdu">Google Web Font (Online)</option>
+                        </select>
+                    </div>
+
+                    <!-- Editable Font Size Input & Quick Presets -->
+                    <div class="form-group">
+                        <label class="form-label" for="fontSize">Font Size (px)</label>
+                        <div class="font-size-input-row">
+                            <input type="number" id="fontSize" value="36" min="8" max="500" placeholder="Size">
+                            <input type="range" id="fontSizeRange" min="8" max="200" value="36">
+                        </div>
+                        <div class="preset-btn-group">
+                            <button type="button" class="preset-btn" data-size="24">24</button>
+                            <button type="button" class="preset-btn" data-size="36">36</button>
+                            <button type="button" class="preset-btn" data-size="48">48</button>
+                            <button type="button" class="preset-btn" data-size="64">64</button>
+                            <button type="button" class="preset-btn" data-size="80">80</button>
+                            <button type="button" class="preset-btn" data-size="100">100</button>
+                        </div>
+                    </div>
+
+                    <!-- Line Height Multiplier -->
+                    <div class="form-group">
+                        <label class="form-label" for="lineHeight">
+                            <span>Line Height</span>
+                            <span class="label-value" id="lineHeightVal">2.0</span>
+                        </label>
+                        <input type="range" id="lineHeight" min="1.0" max="3.5" step="0.1" value="2.0">
+                    </div>
+
+                    <!-- Text Alignment -->
+                    <div class="form-group">
+                        <label class="form-label">Alignment</label>
+                        <div class="btn-group">
+                            <button type="button" class="btn-group-item active" data-align="auto">Auto</button>
+                            <button type="button" class="btn-group-item" data-align="left">Left</button>
+                            <button type="button" class="btn-group-item" data-align="center">Center</button>
+                            <button type="button" class="btn-group-item" data-align="right">Right</button>
+                        </div>
+                    </div>
+
+                    <!-- Bold & Italic Checkboxes -->
+                    <div class="form-row">
+                        <label class="checkbox-group">
+                            <input type="checkbox" id="isBold">
+                            <span>Bold</span>
+                        </label>
+                        <label class="checkbox-group">
+                            <input type="checkbox" id="isItalic">
+                            <span>Italic</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Canvas Dimension & Padding Controls -->
+                <div class="panel-card">
+                    <div class="card-title">
+                        <svg viewBox="0 0 24 24"><path d="M19 12h-2v3h-3v2h5v-5zM7 9h3V7H5v5h2V9zm14-6H3c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H3V5h18v14z"/></svg>
+                        <span>Canvas Dimensions</span>
+                    </div>
+
+                    <!-- Canvas Width -->
+                    <div class="form-group">
+                        <label class="form-label" for="canvasWidth">
+                            <span>Canvas Width</span>
+                            <span class="label-value" id="canvasWidthVal">1080px</span>
+                        </label>
+                        <input type="range" id="canvasWidth" min="400" max="2500" step="10" value="1080">
+                    </div>
+
+                    <!-- Padding -->
+                    <div class="form-group">
+                        <label class="form-label" for="canvasPadding">
+                            <span>Padding</span>
+                            <span class="label-value" id="canvasPaddingVal">60px</span>
+                        </label>
+                        <input type="range" id="canvasPadding" min="10" max="200" step="5" value="60">
+                    </div>
+                </div>
+
+                <!-- PixelLab Colors & Effects Controls -->
+                <div class="panel-card">
+                    <div class="card-title">
+                        <svg viewBox="0 0 24 24"><path d="M12 3c-4.97 0-9 4.03-9 9 0 2.12.74 4.07 1.97 5.61L4.35 19.4c-.39.39-.39 1.02 0 1.41.39.39 1.02.39 1.41 0l1.9-1.9C9.22 19.57 10.57 20 12 20c4.97 0 9-4.03 9-9s-4.03-9-9-9zm0 15c-3.31 0-6-2.69-6-6s2.69-6 6-6 6 2.69 6 6-2.69 6-6 6z"/></svg>
+                        <span>Colors & Effects</span>
+                    </div>
+
+                    <!-- Text Color & Background Color -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label" for="textColor">Text Color</label>
+                            <div class="color-picker-wrapper">
+                                <input type="color" id="textColor" value="#0f172a">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="bgColor">Background</label>
+                            <div class="color-picker-wrapper">
+                                <input type="color" id="bgColor" value="#ffffff">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Background Mode -->
+                    <div class="form-group">
+                        <label class="form-label" for="bgMode">Background Mode</label>
+                        <select id="bgMode">
+                            <option value="solid" selected>Solid Color</option>
+                            <option value="gradient">Gradient</option>
+                            <option value="transparent">Transparent PNG</option>
+                        </select>
+                    </div>
+
+                    <!-- Text Stroke Controls -->
+                    <div class="form-group">
+                        <div class="form-row" style="align-items: center;">
+                            <label class="form-label" for="strokeColor" style="margin: 0;">Text Stroke</label>
+                            <input type="color" id="strokeColor" value="#2563eb" style="width: 28px; height: 28px;">
+                        </div>
+                        <label class="form-label" for="strokeWidth" style="margin-top: 4px;">
+                            <span>Stroke Width</span>
+                            <span class="label-value" id="strokeWidthVal">0px</span>
+                        </label>
+                        <input type="range" id="strokeWidth" min="0" max="20" value="0">
+                    </div>
+
+                    <!-- Text Shadow Controls -->
+                    <div class="form-group">
+                        <div class="form-row" style="align-items: center;">
+                            <label class="form-label" for="shadowColor" style="margin: 0;">Text Shadow</label>
+                            <input type="color" id="shadowColor" value="#94a3b8" style="width: 28px; height: 28px;">
+                        </div>
+                        <label class="form-label" for="shadowBlur" style="margin-top: 4px;">
+                            <span>Shadow Blur</span>
+                            <span class="label-value" id="shadowBlurVal">0px</span>
+                        </label>
+                        <input type="range" id="shadowBlur" min="0" max="40" value="0">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons Footer -->
+            <div class="sidebar-footer">
+                <button type="button" id="btnGenerate" class="btn btn-primary">
+                    <svg viewBox="0 0 24 24"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
+                    <span>Generate Image</span>
+                </button>
+                <button type="button" id="btnDownload" class="btn btn-success">
+                    <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+                    <span>Download PNG</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Right Main Viewport Panel -->
+        <main class="main-viewport">
+            <header class="viewport-toolbar">
+                <div class="toolbar-info">
+                    <span>Dimensions:</span>
+                    <span class="dimension-badge" id="dimensionDisplay">1080 x 600 px</span>
+                    <span id="lineCountDisplay" style="margin-left: 15px;">Lines: 12</span>
+                </div>
+            </header>
+
+            <div class="canvas-scroll-container">
+                <div class="canvas-wrapper">
+                    <canvas id="urduCanvas"></canvas>
+                </div>
+            </div>
+
+            <div class="render-status">
+                <div class="status-dot"></div>
+                <span id="statusText">Ready - Auto Height (Up to 20,000px)</span>
+            </div>
+        </main>
+    </div>
+
+    <!-- Mobile Download Fallback Modal -->
+    <div id="downloadModal" class="modal-overlay" aria-hidden="true" style="display: none;">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 class="modal-title">Save Image</h3>
+                <button type="button" id="modalCloseBtn" class="modal-close-icon" aria-label="Close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p class="modal-instruction">
+                    📱 <strong>Touch &amp; Hold</strong> the image below, then tap <strong>"Save to Photos"</strong> or <strong>"Download Image"</strong>.
+                </p>
+                <div class="modal-img-wrapper">
+                    <img id="modalPreviewImg" alt="Generated Text Image Preview">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" id="btnOpenNewTab" class="btn btn-secondary">
+                    <span>Open in New Tab</span>
+                </button>
+                <button type="button" id="modalDoneBtn" class="btn btn-primary">
+                    <span>Done</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
