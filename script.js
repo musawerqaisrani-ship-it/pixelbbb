@@ -182,11 +182,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const textValue = urduText.value;
         const fontName = fontFamily.value;
         const sizePx = parseInt(fontSize.value, 10) || 36;
-        const lhMult = parseFloat(lineHeight.value);
-        const widthPx = parseInt(canvasWidth.value, 10) || 2160;
-        const padPx = parseInt(canvasPadding.value, 10);
-        const strWidth = parseInt(strokeWidth.value, 10);
-        const shBlur = parseInt(shadowBlur.value, 10);
+        const lhMult = parseFloat(lineSpacing.value) || 1.6;
+        const wordSpacingPx = parseInt(wordSpacingEl ? wordSpacingEl.value : 10, 10) || 0;
+        const widthPx = parseInt(canvasWidth.value, 10) || 1280;
+        const padPx = parseInt(canvasPadding.value, 10) || 60;
+        const strWidth = parseInt(strokeWidth.value, 10) || 0;
+        const shBlur = parseInt(shadowBlur.value, 10) || 0;
 
         // Determine Active Direction (Auto vs Explicit)
         const selectedDirSetting = textDirection.value;
@@ -196,11 +197,12 @@ document.addEventListener('DOMContentLoaded', () => {
         urduText.setAttribute('dir', activeDir);
 
         // Update UI Label Indicators
-        lineHeightVal.textContent = `${lhMult.toFixed(1)}`;
-        canvasWidthVal.textContent = `${widthPx}px`;
-        canvasPaddingVal.textContent = `${padPx}px`;
-        strokeWidthVal.textContent = `${strWidth}px`;
-        shadowBlurVal.textContent = `${shBlur}px`;
+        if (lineSpacingVal) lineSpacingVal.textContent = `${lhMult.toFixed(1)}`;
+        if (wordSpacingVal) wordSpacingVal.textContent = `${wordSpacingPx}px`;
+        if (canvasWidthVal) canvasWidthVal.textContent = `${widthPx}px`;
+        if (canvasPaddingVal) canvasPaddingVal.textContent = `${padPx}px`;
+        if (strokeWidthVal) strokeWidthVal.textContent = `${strWidth}px`;
+        if (shadowBlurVal) shadowBlurVal.textContent = `${shBlur}px`;
 
         // Configure Font Specification
         const fontStyle = isItalic.checked ? 'italic ' : '';
@@ -214,8 +216,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const wrappedLines = getWrappedLines(ctx, textValue, maxContentWidth);
 
         // Dynamic Height Calculation: Bounded up to 20,000px height smoothly
-        const lineSpacingPx = sizePx * lhMult;
-        const totalContentHeight = (wrappedLines.length * lineSpacingPx) + (padPx * 2);
+        const lineSpacingPixels = sizePx * lhMult;
+        const totalContentHeight = (wrappedLines.length * lineSpacingPixels) + (padPx * 2);
         const calculatedHeight = Math.min(20000, Math.max(200, Math.ceil(totalContentHeight)));
 
         // Ultra 4K Dynamic Resolution Supersampling: 3x Scale Factor for Ultra HD Crisp Vector-like Edges
@@ -231,8 +233,8 @@ document.addEventListener('DOMContentLoaded', () => {
         canvas.style.maxWidth = '100%';
 
         // Update Toolbar Metrics Display
-        dimensionDisplay.textContent = `${widthPx} x ${calculatedHeight} px (${safeScale}x 4K UHD)`;
-        lineCountDisplay.textContent = `Lines: ${wrappedLines.length}`;
+        if (dimensionDisplay) dimensionDisplay.textContent = `${widthPx} x ${calculatedHeight} px (${safeScale}x 4K UHD)`;
+        if (lineCountDisplay) lineCountDisplay.textContent = `Lines: ${wrappedLines.length}`;
 
         // Configure Context State Post Resizing & Apply Scale Transform
         ctx.font = fontSpec;
@@ -276,16 +278,15 @@ document.addEventListener('DOMContentLoaded', () => {
             startX = widthPx / 2;
             ctx.textAlign = 'center';
         } else {
-            // Left alignment
             startX = padPx;
             ctx.textAlign = 'left';
         }
 
-        // 3. Render Text Lines with Stroke, Razor-Sharp Outline & Shadow Effects
-        wrappedLines.forEach((line, index) => {
-            const baselineY = padPx + (index * lineSpacingPx) + (sizePx * 0.85);
-
-            // Configure Text Shadow
+        /**
+         * Helper: draw a single text segment (stroke + fill) at (x, y)
+         */
+        function drawSegment(text, x, y) {
+            // Shadow
             if (shBlur > 0) {
                 ctx.shadowColor = shadowColor.value;
                 ctx.shadowBlur = shBlur;
@@ -297,28 +298,81 @@ document.addEventListener('DOMContentLoaded', () => {
                 ctx.shadowOffsetX = 0;
                 ctx.shadowOffsetY = 0;
             }
-
-            // Configure Text Stroke & Razor-Sharp Text Outline (0.8px) Matching Text Color
+            // Stroke
             if (strWidth > 0) {
                 ctx.strokeStyle = strokeColor.value;
                 ctx.lineWidth = strWidth * 2;
                 ctx.lineJoin = 'round';
                 ctx.miterLimit = 2;
-                ctx.strokeText(line, startX, baselineY);
+                ctx.strokeText(text, x, y);
             } else {
-                // Subtle razor-sharp text outline matching text color to prevent video compression artifacts
                 ctx.strokeStyle = textColor.value;
                 ctx.lineWidth = 0.8;
                 ctx.lineJoin = 'round';
-                ctx.strokeText(line, startX, baselineY);
+                ctx.strokeText(text, x, y);
             }
-
-            // Fill Primary Text
+            // Fill
             ctx.fillStyle = textColor.value;
-            ctx.fillText(line, startX, baselineY);
+            ctx.fillText(text, x, y);
+        }
+
+        // 3. Render Text Lines with word spacing support
+        wrappedLines.forEach((line, index) => {
+            const baselineY = padPx + (index * lineSpacingPixels) + (sizePx * 0.85);
+
+            if (wordSpacingPx === 0 || !line.trim()) {
+                // No word spacing — draw entire line at once (fastest path)
+                drawSegment(line, startX, baselineY);
+            } else {
+                // Word-by-word rendering to apply custom word spacing
+                const words = line.split(/(\s+)/); // keep whitespace tokens
+                const nonEmptyWords = line.trim().split(/\s+/);
+
+                if (nonEmptyWords.length <= 1) {
+                    // Single word — draw directly
+                    drawSegment(line, startX, baselineY);
+                } else {
+                    // Measure each word width then lay out with extra spacing
+                    const wordWidths = nonEmptyWords.map(w => ctx.measureText(w).width);
+                    const naturalSpaceWidth = ctx.measureText(' ').width;
+                    const effectiveSpaceWidth = naturalSpaceWidth + wordSpacingPx;
+                    const totalLineWidth = wordWidths.reduce((sum, w) => sum + w, 0) +
+                        effectiveSpaceWidth * (nonEmptyWords.length - 1);
+
+                    let cursorX;
+                    if (resolvedAlign === 'right') {
+                        cursorX = startX - totalLineWidth;
+                    } else if (resolvedAlign === 'center') {
+                        cursorX = startX - totalLineWidth / 2;
+                    } else {
+                        cursorX = startX;
+                    }
+
+                    // Temporarily override alignment to 'left' for manual word placement
+                    const savedAlign = ctx.textAlign;
+                    ctx.textAlign = 'left';
+
+                    if (activeDir === 'rtl') {
+                        // RTL: draw words right-to-left
+                        for (let wi = nonEmptyWords.length - 1; wi >= 0; wi--) {
+                            drawSegment(nonEmptyWords[wi], cursorX, baselineY);
+                            cursorX += wordWidths[wi] + effectiveSpaceWidth;
+                        }
+                    } else {
+                        for (let wi = 0; wi < nonEmptyWords.length; wi++) {
+                            drawSegment(nonEmptyWords[wi], cursorX, baselineY);
+                            cursorX += wordWidths[wi] + effectiveSpaceWidth;
+                        }
+                    }
+
+                    ctx.textAlign = savedAlign;
+                }
+            }
         });
 
-        statusText.textContent = `Ready (${wrappedLines.length} lines, ${calculatedHeight}px height, ${safeScale}x 4K UHD scale, ${activeDir.toUpperCase()})`;
+        if (statusText) {
+            statusText.textContent = `Ready (${wrappedLines.length} lines, ${calculatedHeight}px height, ${safeScale}x 4K UHD scale, ${activeDir.toUpperCase()})`;
+        }
     }
 
     /**
@@ -651,7 +705,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     const directControls = [
-        textDirection, fontSize, lineHeight, canvasWidth, canvasPadding,
+        textDirection, fontSize, lineSpacing, wordSpacingEl, canvasWidth, canvasPadding,
         textColor, bgColor, bgMode, strokeColor, strokeWidth,
         shadowColor, shadowBlur, isBold, isItalic
     ];
